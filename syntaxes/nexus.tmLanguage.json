@@ -3,21 +3,11 @@
   "name": "NEXUS",
   "scopeName": "source.nexus",
   "patterns": [
-    {
-      "include": "#comments"
-    },
-    {
-      "include": "#keywords"
-    },
-    {
-      "include": "#blocks"
-    },
-    {
-      "include": "#nucleotides"
-    },
-    {
-      "include": "#operators"
-    }
+    { "include": "#comments" },
+    { "include": "#matrix-block" },
+    { "include": "#blocks" },
+    { "include": "#keywords" },
+    { "include": "#operators" }
   ],
   "repository": {
     "comments": {
@@ -26,6 +16,31 @@
           "name": "comment.block.nexus",
           "begin": "\\[",
           "end": "\\]"
+        }
+      ]
+    },
+    "matrix-block": {
+      "name": "meta.block.matrix.nexus",
+      "begin": "(?i)\\b(MATRIX)\\b",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.matrix.nexus" }
+      },
+      "end": ";",
+      "endCaptures": {
+        "0": { "name": "punctuation.terminator.matrix.nexus" }
+      },
+      "patterns": [
+        { "include": "#comments" },
+        {
+          "name": "meta.matrix.row.nexus",
+          "match": "^\\s*('([^']*)'|([^\\s\\[\\];]+))",
+          "captures": {
+            "1": { "name": "entity.name.tag.taxon.nexus" }
+          }
+        },
+        {
+          "name": "string.seq.nucleotide.nexus",
+          "match": "(?i)[ACGTURYMKWSBDHVN\\-\\?]"
         }
       ]
     },
@@ -44,7 +59,7 @@
       "patterns": [
         {
           "name": "keyword.other.nexus",
-          "match": "(?i)\\b(DIMENSIONS|FORMAT|TAXLABELS|MATRIX|STATELABELS|CHARSTATELABELS|TREES|TRANSLATE|TREE|UTREE|PTREE|TAXA|CHARACTERS|ELIMINATE|ASSUMPTIONS|CODONS|SETS)\\b"
+          "match": "(?i)\\b(DIMENSIONS|FORMAT|TAXLABELS|STATELABELS|CHARSTATELABELS|TREES|TRANSLATE|TREE|UTREE|PTREE|TAXA|CHARACTERS|ELIMINATE|ASSUMPTIONS|CODONS|SETS)\\b"
         },
         {
           "name": "storage.type.nexus",
@@ -56,28 +71,10 @@
         }
       ]
     },
-    "nucleotides": {
-      "patterns": [
-        {
-          "name": "string.unquoted.nexus",
-          "match": "[ACGTUacgtu]"
-        },
-        {
-          "name": "constant.numeric.nexus",
-          "match": "[\\-\\?]"
-        }
-      ]
-    },
     "operators": {
       "patterns": [
-        {
-          "name": "punctuation.terminator.nexus",
-          "match": ";"
-        },
-        {
-          "name": "keyword.operator.assignment.nexus",
-          "match": "="
-        }
+        { "name": "punctuation.terminator.nexus", "match": ";" },
+        { "name": "keyword.operator.assignment.nexus", "match": "=" }
       ]
     }
   }
