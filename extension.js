@@ -69,6 +69,7 @@ function validateNexus(document, collection) {
     const startLine = document.positionAt(matrixContentStart).line;
     const endLine = document.positionAt(matrixContentEnd).line;
 
+    const taxaSequences = {};
     let actualTaxaCount = 0;
     let maxSequenceLength = 0;
 
@@ -91,19 +92,37 @@ function validateNexus(document, collection) {
         if (match) {
             actualTaxaCount++;
             
-            // Extract sequence part
+            // Extract taxon name and sequence part
+            const taxonName = match[2] || match[3]; // Use quoted name or single word
             let rawSequence = match[4];
             
             // Remove inline comments if any (e.g. ACGT [comment] ACGT)
             rawSequence = rawSequence.replace(/\[.*?\]/g, '');
             
             // Remove whitespace to count actual nucleotides
-            const cleanSequence = rawSequence.replace(/\s/g, '');
-            const seqLength = cleanSequence.length;
+            const sequence = rawSequence.replace(/\s/g, '');
 
-            if (seqLength > maxSequenceLength) {
+            if (taxaSequences[taxonName]) {
+                // Append to existing sequence
+                taxaSequences[taxonName] += sequence;
+            } else {
+                // Create new sequence entry
+                taxaSequences[taxonName] = sequence;
+            }
+        }
+    }
+
+    // Iterate through aggregated sequences to perform validation
+    for (const taxonName in taxaSequences) {
+        if (taxaSequences.hasOwnProperty(taxonName)) {
+            const sequence = taxaSequences[taxonName];
+            const seqLength = sequence.length;
+
+             if (seqLength > maxSequenceLength) {
                 maxSequenceLength = seqLength;
             }
+
+            actualTaxaCount = Object.keys(taxaSequences).length;
 
             // CHECK: Row Length vs NCHAR
             if (definedNchar !== null && seqLength !== definedNchar) {
@@ -146,7 +165,7 @@ function validateNexus(document, collection) {
     }
 
     collection.set(document.uri, diagnostics);
-}
+} 
 
 function deactivate() {}
 
