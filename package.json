@@ -1,21 +1,36 @@
 {
   "name": "nexus-highlighter",
-  "displayName": "NEXUS Bioinformatics Support",
-  "description": "Syntax highlighting for NEXUS (.nex, .nxs) bioinformatics files.",
+  "displayName": "NEXUS Bioinformatics",
+  "publisher": "espinosajuanma",
+  "description": "Smart syntax highlighting for NEXUS (.nex) files with Matrix-aware context.",
   "version": "0.0.3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/espinosajuanma/nexus-highlighter.git"
+  },
   "main": "./extension.js",
   "engines": {
-    "vscode": "^1.70.0"
+    "vscode": "^1.75.0"
   },
   "categories": [
     "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:nexus"
   ],
   "contributes": {
     "languages": [
       {
         "id": "nexus",
-        "aliases": ["NEXUS", "nexus"],
-        "extensions": [".nex", ".nxs", ".nexus"],
+        "aliases": [
+          "NEXUS",
+          "nexus"
+        ],
+        "extensions": [
+          ".nex",
+          ".nxs",
+          ".nexus"
+        ],
         "configuration": "./language-configuration.json"
       }
     ],
