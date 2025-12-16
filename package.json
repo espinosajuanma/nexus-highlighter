@@ -1,0 +1,29 @@
+{
+  "name": "nexus-highlighter",
+  "displayName": "NEXUS Bioinformatics Support",
+  "description": "Syntax highlighting for NEXUS (.nex, .nxs) bioinformatics files.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "nexus",
+        "aliases": ["NEXUS", "nexus"],
+        "extensions": [".nex", ".nxs", ".nexus"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "nexus",
+        "scopeName": "source.nexus",
+        "path": "./syntaxes/nexus.tmLanguage.json"
+      }
+    ]
+  }
+}

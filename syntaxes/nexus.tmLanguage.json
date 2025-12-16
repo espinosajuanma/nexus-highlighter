@@ -1,0 +1,84 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "NEXUS",
+  "scopeName": "source.nexus",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#blocks"
+    },
+    {
+      "include": "#nucleotides"
+    },
+    {
+      "include": "#operators"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.nexus",
+          "begin": "\\[",
+          "end": "\\]"
+        }
+      ]
+    },
+    "blocks": {
+      "patterns": [
+        {
+          "match": "(?i)\\b(BEGIN|END|EndBlock)\\s+([a-zA-Z0-9_]+)?;",
+          "captures": {
+            "1": { "name": "keyword.control.nexus" },
+            "2": { "name": "entity.name.type.class.nexus" }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.other.nexus",
+          "match": "(?i)\\b(DIMENSIONS|FORMAT|TAXLABELS|MATRIX|STATELABELS|CHARSTATELABELS|TREES|TRANSLATE|TREE|UTREE|PTREE|TAXA|CHARACTERS|ELIMINATE|ASSUMPTIONS|CODONS|SETS)\\b"
+        },
+        {
+          "name": "storage.type.nexus",
+          "match": "(?i)\\b(NTAX|NCHAR|DATATYPE|MISSING|GAP|SYMBOLS|EQUATE|MATCHCHAR|INTERLEAVE|TRANSPOSE|ID|VECTOR)\\b"
+        },
+        {
+          "name": "constant.language.nexus",
+          "match": "(?i)\\b(STANDARD|DNA|RNA|PROTEIN|CONTINUOUS|NO|YES)\\b"
+        }
+      ]
+    },
+    "nucleotides": {
+      "patterns": [
+        {
+          "name": "string.unquoted.nexus",
+          "match": "[ACGTUacgtu]"
+        },
+        {
+          "name": "constant.numeric.nexus",
+          "match": "[\\-\\?]"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "punctuation.terminator.nexus",
+          "match": ";"
+        },
+        {
+          "name": "keyword.operator.assignment.nexus",
+          "match": "="
+        }
+      ]
+    }
+  }
+}
