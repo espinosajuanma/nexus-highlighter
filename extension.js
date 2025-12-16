@@ -31,58 +31,94 @@ function activate(context) {
 }
 
 /**
- * Validates the NTAX vs Matrix row count
+ * Validates NTAX and NCHAR
  * @param {vscode.TextDocument} document 
  * @param {vscode.DiagnosticCollection} collection 
  */
 function validateNexus(document, collection) {
-    // Only check NEXUS files
     if (document.languageId !== 'nexus') return;
 
     collection.clear();
     const text = document.getText();
     const diagnostics = [];
 
-    // 1. Find the defined NTAX value (e.g., NTAX=5)
-    // Regex explanation: Look for NTAX, optional whitespace, =, optional whitespace, capture digits
+    // 1. Find NTAX
     const ntaxRegex = /\bNTAX\s*=\s*(\d+)/i;
     const ntaxMatch = ntaxRegex.exec(text);
+    const definedNtax = ntaxMatch ? parseInt(ntaxMatch[1]) : null;
 
-    if (!ntaxMatch) {
-        return; // No NTAX defined, nothing to validate
-    }
+    // 2. Find NCHAR
+    const ncharRegex = /\bNCHAR\s*=\s*(\d+)/i;
+    const ncharMatch = ncharRegex.exec(text);
+    const definedNchar = ncharMatch ? parseInt(ncharMatch[1]) : null;
 
-    const definedNtax = parseInt(ntaxMatch[1]);
-
-    // 2. Find the MATRIX block
-    // Regex explanation: Find MATRIX, capture everything until the next semicolon
-    const matrixRegex = /\bMATRIX\b([\s\S]*?);/i;
+    // 3. Find MATRIX Block
+    // Captures the content between MATRIX and ;
+    const matrixRegex = /\bMATRIX\b\s*([\s\S]*?)\s*;/i;
     const matrixMatch = matrixRegex.exec(text);
 
     if (!matrixMatch) {
-        return; // No Matrix found
+        return; 
     }
 
-    const matrixContent = matrixMatch[1];
+    // Calculate where the matrix content actually starts in the file
+    const matrixContentStart = matrixMatch.index + matrixMatch[0].indexOf(matrixMatch[1]);
+    const matrixContentEnd = matrixContentStart + matrixMatch[1].length;
     
-    // 3. Count the actual taxa
-    // We split by newline and filter out empty lines or comment-only lines
-    const lines = matrixContent.split('\n');
-    let actualTaxaCount = 0;
+    // Convert to line numbers to iterate safely
+    const startLine = document.positionAt(matrixContentStart).line;
+    const endLine = document.positionAt(matrixContentEnd).line;
 
-    for (let line of lines) {
-        // Remove comments [ ... ]
-        let cleanLine = line.replace(/\[.*?\]/g, '').trim();
-        
-        // If the line still has content, we assume it's a taxon row
-        if (cleanLine.length > 0) {
+    let actualTaxaCount = 0;
+    let maxSequenceLength = 0;
+
+    // Iterate through lines inside the matrix block
+    for (let i = startLine; i <= endLine; i++) {
+        const line = document.lineAt(i);
+        const lineText = line.text;
+        const trimmed = lineText.trim();
+
+        // Skip comments, empty lines, or isolated semicolons
+        if (trimmed.length === 0 || trimmed.startsWith('[') || trimmed === ';') continue;
+
+        // Naive parser: 
+        // 1. Optional whitespace
+        // 2. Group 1: Taxon Name (Quoted '...' OR SingleWord)
+        // 3. Group 4: The rest (Sequence)
+        const rowRegex = /^\s*('([^']+)'|(\S+))\s+(.*)$/;
+        const match = rowRegex.exec(lineText);
+
+        if (match) {
             actualTaxaCount++;
+            
+            // Extract sequence part
+            let rawSequence = match[4];
+            
+            // Remove inline comments if any (e.g. ACGT [comment] ACGT)
+            rawSequence = rawSequence.replace(/\[.*?\]/g, '');
+            
+            // Remove whitespace to count actual nucleotides
+            const cleanSequence = rawSequence.replace(/\s/g, '');
+            const seqLength = cleanSequence.length;
+
+            if (seqLength > maxSequenceLength) {
+                maxSequenceLength = seqLength;
+            }
+
+            // CHECK: Row Length vs NCHAR
+            if (definedNchar !== null && seqLength !== definedNchar) {
+                const diagnostic = new vscode.Diagnostic(
+                    line.range,
+                    `Sequence length (${seqLength}) does not match NCHAR (${definedNchar}).`,
+                    vscode.DiagnosticSeverity.Warning
+                );
+                diagnostics.push(diagnostic);
+            }
         }
     }
 
-    // 4. Compare and create error if mismatch
-    if (definedNtax !== actualTaxaCount) {
-        // Create a range object to underline the "NTAX=..." part
+    // CHECK: NTAX vs Actual Count
+    if (definedNtax !== null && definedNtax !== actualTaxaCount) {
         const startPos = document.positionAt(ntaxMatch.index);
         const endPos = document.positionAt(ntaxMatch.index + ntaxMatch[0].length);
         const range = new vscode.Range(startPos, endPos);
@@ -92,7 +128,20 @@ function validateNexus(document, collection) {
             `Mismatch: NTAX is set to ${definedNtax}, but MATRIX contains ${actualTaxaCount} taxa.`,
             vscode.DiagnosticSeverity.Error
         );
+        diagnostics.push(diagnostic);
+    }
 
+    // CHECK: NCHAR vs Max Sequence Length
+    if (definedNchar !== null && definedNchar !== maxSequenceLength && maxSequenceLength > 0) {
+        const startPos = document.positionAt(ncharMatch.index);
+        const endPos = document.positionAt(ncharMatch.index + ncharMatch[0].length);
+        const range = new vscode.Range(startPos, endPos);
+
+        const diagnostic = new vscode.Diagnostic(
+            range,
+            `Mismatch: NCHAR is set to ${definedNchar}, but the longest sequence found is ${maxSequenceLength}.`,
+            vscode.DiagnosticSeverity.Error
+        );
         diagnostics.push(diagnostic);
     }
 

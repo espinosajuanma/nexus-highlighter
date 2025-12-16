@@ -2,7 +2,7 @@
   "name": "nexus-highlighter",
   "displayName": "NEXUS Bioinformatics Support",
   "description": "Syntax highlighting for NEXUS (.nex, .nxs) bioinformatics files.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "./extension.js",
   "engines": {
     "vscode": "^1.70.0"
