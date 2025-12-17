@@ -3,7 +3,7 @@
   "displayName": "NEXUS Bioinformatics",
   "publisher": "espinosajuanma",
   "description": "Smart syntax highlighting for NEXUS (.nex) files with Matrix-aware context.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "repository": {
     "type": "git",
     "url": "https://github.com/espinosajuanma/nexus-highlighter.git"
@@ -16,7 +16,6 @@
     "Programming Languages"
   ],
   "activationEvents": [
-    "onLanguage:nexus"
   ],
   "contributes": {
     "languages": [
